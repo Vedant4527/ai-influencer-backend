@@ -9,43 +9,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
 
-// Health check
+// Health check (Railway needs this)
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+  res.status(200).send("Backend is running 🚀");
 });
 
-// Scan Instagram (mock MVP)
-app.post("/api/scan-instagram", async (req, res) => {
-  const { username } = req.body;
-
-  res.json({
-    instagram: username,
-    fake_score: 72,
-    risk: "HIGH",
-    compliance: "3/10 posts non-compliant"
-  });
-});
-
-// Fetch influencers
-app.get("/api/influencers", async (req, res) => {
-  const { data, error } = await supabase
-    .from("influencers")
-    .select("*");
-
-  if (error) return res.status(500).json(error);
-  res.json(data);
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Scan Instagram (FAKE FOLLOWER SCORING)
 app.post("/api/scan-instagram", async (req, res) => {
   const { username } = req.body;
 
@@ -59,31 +34,21 @@ app.post("/api/scan-instagram", async (req, res) => {
   let fakeScore = 0;
   let reasons = [];
 
-  // Rule 1: Low engagement
   if (engagementRate < 0.5) {
     fakeScore += 30;
     reasons.push("Very low engagement rate");
   }
 
-  // Rule 2: Sudden follower spike (mock)
   const suddenSpike = true;
   if (suddenSpike) {
     fakeScore += 25;
     reasons.push("Sudden follower growth spike");
   }
 
-  // Rule 3: Repeated comments (mock)
   const repeatedComments = true;
   if (repeatedComments) {
     fakeScore += 20;
     reasons.push("Repeated comments from same accounts");
-  }
-
-  // Rule 4: Follow/Unfollow (mock)
-  const followUnfollow = false;
-  if (followUnfollow) {
-    fakeScore += 15;
-    reasons.push("Mass follow-unfollow behavior");
   }
 
   if (fakeScore > 100) fakeScore = 100;
@@ -101,3 +66,24 @@ app.post("/api/scan-instagram", async (req, res) => {
     reasons
   });
 });
+
+// Fetch influencers from Supabase
+app.get("/api/influencers", async (req, res) => {
+  const { data, error } = await supabase
+    .from("influencers")
+    .select("*");
+
+  if (error) {
+    return res.status(500).json(error);
+  }
+
+  res.json(data);
+});
+
+// START SERVER (ALWAYS LAST)
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
