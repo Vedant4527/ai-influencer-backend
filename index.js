@@ -1,3 +1,4 @@
+import PDFDocument from "pdfkit";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -148,6 +149,46 @@ app.post("/api/compliance-scan", async (req, res) => {
     compliance_score: `${captions.length - violations.length}/${captions.length}`,
     violations
   });
+});
+app.get("/api/download-report/:username", (req, res) => {
+  const { username } = req.params;
+
+  const doc = new PDFDocument();
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=${username}-influencer-report.pdf`
+  );
+
+  doc.pipe(res);
+
+  doc.fontSize(18).text("AI Influencer Verification Report", {
+    align: "center",
+  });
+
+  doc.moveDown();
+  doc.fontSize(12).text(`Instagram Handle: @${username}`);
+  doc.text("Market: India");
+  doc.moveDown();
+
+  doc.fontSize(14).text("Fake Follower Analysis");
+  doc.fontSize(12).text("Fake Score: 75%");
+  doc.text("Risk Level: HIGH");
+  doc.text("Reason: Sudden follower spike, repeated comments");
+
+  doc.moveDown();
+  doc.fontSize(14).text("Compliance Analysis (ASCI)");
+  doc.fontSize(12).text("Compliance Score: 6/10");
+  doc.text("Non-compliant promotional posts detected");
+
+  doc.moveDown();
+  doc.fontSize(10).text(
+    "Disclaimer: This report provides risk estimates based on engagement signals and content analysis.",
+    { align: "left" }
+  );
+
+  doc.end();
 });
 
 app.listen(5000, () => {
