@@ -190,6 +190,20 @@ app.get("/api/download-report/:username", (req, res) => {
 
   doc.end();
 });
+app.post("/api/match-influencers", async (req, res) => {
+  const { niche, city } = req.body;
+
+  const { data, error } = await supabase
+    .from("influencers")
+    .select("*")
+    .eq("niche", niche)
+    .eq("city", city)
+    .limit(5);
+
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
+});
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
