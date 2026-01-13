@@ -86,6 +86,69 @@ app.get("/api/influencers", async (req, res) => {
   if (error) return res.status(500).json(error);
   res.json(data);
 });
+app.post("/api/compliance-scan", async (req, res) => {
+  const { username } = req.body;
+
+  // Mock last 10 Instagram captions (MVP)
+  const captions = [
+    "Loved working with this skincare brand!",
+    "Daily routine upgrade 💙",
+    "Sponsored post for new hair serum",
+    "Weekend vibes only ✨",
+    "Paid partnership with fitness brand",
+    "Trying out new cafe in town",
+    "Ad for my favorite shoes",
+    "Gym session done right",
+    "Collaboration with fashion label",
+    "Morning skincare routine"
+  ];
+
+  const promoKeywords = [
+    "ad",
+    "sponsored",
+    "paid",
+    "partnership",
+    "collaboration",
+    "collab"
+  ];
+
+  const disclosureTags = [
+    "#ad",
+    "#sponsored",
+    "#paid",
+    "#paidpartnership"
+  ];
+
+  let violations = [];
+
+  captions.forEach((caption, index) => {
+    const text = caption.toLowerCase();
+
+    const isPromotional = promoKeywords.some(word =>
+      text.includes(word)
+    );
+
+    const hasDisclosure = disclosureTags.some(tag =>
+      text.includes(tag)
+    );
+
+    if (isPromotional && !hasDisclosure) {
+      violations.push({
+        post_number: index + 1,
+        caption: caption,
+        issue: "Promotional content without disclosure"
+      });
+    }
+  });
+
+  res.status(200).json({
+    instagram_handle: username,
+    total_posts_checked: captions.length,
+    non_compliant_posts: violations.length,
+    compliance_score: `${captions.length - violations.length}/${captions.length}`,
+    violations
+  });
+});
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
